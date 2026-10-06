@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Circadian Compass</title>
+<meta name="description" content="Free sleep tools: a live circadian rhythm curve, bedtime and wake-time calculator, chronotype quiz, sleep debt tracker, jet lag planner, nap timer and caffeine cutoff calculator.">
+<meta property="og:title" content="Circadian Compass">
+<meta property="og:description" content="Find your ideal bedtime, wake time and chronotype with free, private, in-browser sleep tools.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%99%3C/text%3E%3C/svg%3E">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2effa;
+    --bg-alt:#ffffff;
+    --surface:#ffffff;
+    --surface-2:#ebe6f8;
+    --ink:#1c1533;
+    --ink-soft:#5b5279;
+    --ink-faint:#8a80ab;
+    --line:#ddd5f2;
+    --accent:#e08a2c;
+    --accent-soft:#fbe6cd;
+    --accent2:#6c56e0;
+    --accent2-soft:#e7e1fb;
+    --good:#2f9e6e;
+    --good-soft:#dcf3ea;
+    --warn:#d1495b;
+    --warn-soft:#fbe1e4;
+    --shadow: 0 1px 2px rgba(28,21,51,.04), 0 8px 24px -12px rgba(28,21,51,.18);
+    --radius: 14px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e0b1f;
+      --bg-alt:#151228;
+      --surface:#17142e;
+      --surface-2:#1e1a38;
+      --ink:#ede9fb;
+      --ink-soft:#b3a9d9;
+      --ink-faint:#7d74a3;
+      --line:#2c2650;
+      --accent:#f2a94e;
+      --accent-soft:#3a2a15;
+      --accent2:#a08cff;
+      --accent2-soft:#2a2358;
+      --good:#4fc490;
+      --good-soft:#153327;
+      --warn:#ff7a8a;
+      --warn-soft:#3a1620;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.6);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e0b1f;
+    --bg-alt:#151228;
+    --surface:#17142e;
+    --surface-2:#1e1a38;
+    --ink:#ede9fb;
+    --ink-soft:#b3a9d9;
+    --ink-faint:#7d74a3;
+    --line:#2c2650;
+    --accent:#f2a94e;
+    --accent-soft:#3a2a15;
+    --accent2:#a08cff;
+    --accent2-soft:#2a2358;
+    --good:#4fc490;
+    --good-soft:#153327;
+    --warn:#ff7a8a;
+    --warn-soft:#3a1620;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -14px rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Manrope',system-ui,-apple-system,'Segoe UI',sans-serif;
+    padding-inline:0;
+    line-height:1.5;
+  }
+  h1,h2,h3,.display{
+    font-family:'Fraunces',ui-serif,Georgia,serif;
+    font-weight:600;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .mono{ font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,monospace; font-variant-numeric:tabular-nums; }
+  a{ color:var(--accent2); }
+  button{ font-family:inherit; }
+  :focus-visible{ outline:2px solid var(--accent2); outline-offset:2px; border-radius:6px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+
+  .wrap{ max-width:920px; margin-inline:auto; padding-inline:20px; }
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    padding-block: 20px 8px;
+  }
+  .brand{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .brand-name{ font-size:1.5rem; margin:0; letter-spacing:-.01em; }
+  .brand-tag{ color:var(--ink-soft); font-size:.85rem; max-width:32ch; text-align:right; }
+
+  /* ---------- hero / live curve ---------- */
+  .hero{ padding-block: 10px 6px; }
+  .hero-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius: 20px;
+    padding: 18px 18px 8px;
+    box-shadow:var(--shadow);
+  }
+  .hero-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:4px;}
+  .hero-now{ font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .hero-phase{ font-size:1.15rem; margin:2px 0 0; }
+  .hero-blurb{ color:var(--ink-soft); font-size:.88rem; max-width:46ch; margin-top:2px; }
+  .hero-clock{ font-size:1.8rem; text-align:right; }
+  .hero-clock .zone{ font-size:.7rem; color:var(--ink-faint); display:block; text-align:right; text-transform:uppercase; letter-spacing:.06em; }
+  svg.curve{ display:block; width:100%; height:auto; overflow:visible; }
+  .curve-legend{ display:flex; gap:18px; flex-wrap:wrap; padding:6px 4px 10px; font-size:.78rem; color:var(--ink-soft); }
+  .curve-legend span{ display:inline-flex; align-items:center; gap:6px; }
+  .swatch{ width:10px; height:10px; border-radius:3px; display:inline-block; }
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    position:sticky; top: env(safe-area-inset-top, 0px);
+    z-index:5; background:var(--bg);
+    padding-block: 14px 10px;
+    margin-top:6px;
+  }
+  .tabs-row{
+    display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;
+    border-bottom:1px solid var(--line); padding-bottom:0;
+  }
+  .tabs-row::-webkit-scrollbar{ display:none; }
+  .tab-btn{
+    flex:0 0 auto;
+    background:transparent; border:none; cursor:pointer;
+    padding:9px 14px; font-size:.86rem; font-weight:600; color:var(--ink-faint);
+    border-bottom:2px solid transparent; white-space:nowrap;
+    transition: color .15s ease, border-color .15s ease;
+  }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-btn[aria-selected="true"]{ color:var(--accent2); border-color:var(--accent2); }
+
+  /* ---------- panels / cards ---------- */
+  main{ padding-block: 4px 40px; }
+  .panel[hidden]{ display:none; }
+  .panel-intro{ margin-block:14px 18px; }
+  .panel-intro h2{ font-size:1.4rem; margin:0 0 4px; }
+  .panel-intro p{ color:var(--ink-soft); margin:0; max-width:60ch; font-size:.92rem; }
+
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; align-items:start; }
+  @media (max-width: 700px){ .grid2{ grid-template-columns:1fr; } }
+
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px; box-shadow:var(--shadow);
+  }
+  .card h3{ font-size:1.02rem; margin:0 0 12px; }
+  .card + .card{ margin-top:16px; }
+
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field label{ font-size:.8rem; font-weight:600; color:var(--ink-soft); }
+  .field .hint{ font-size:.76rem; color:var(--ink-faint); font-weight:400; }
+  input[type="time"], input[type="number"], input[type="text"]{
+    font-family:'IBM Plex Mono', monospace; font-size:1rem;
+    padding:9px 10px; border-radius:9px; border:1px solid var(--line);
+    background:var(--bg-alt); color:var(--ink); width:100%;
+  }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; }
+  .row > *{ flex:1; min-width:120px; }
+
+  .segmented{ display:inline-flex; background:var(--surface-2); border-radius:10px; padding:3px; gap:2px; }
+  .segmented button{
+    border:none; background:transparent; padding:7px 13px; border-radius:8px;
+    font-size:.82rem; font-weight:600; color:var(--ink-soft); cursor:pointer;
+  }
+  .segmented button[aria-pressed="true"]{ background:var(--surface); color:var(--accent2); box-shadow:var(--shadow); }
+
+  .btn{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface-2); color:var(--ink);
+    padding:9px 16px; border-radius:10px; font-weight:700; font-size:.86rem;
+  }
+  .btn.primary{ background:var(--accent2); border-color:var(--accent2); color:#fff; }
+  .btn.ghost{ background:transparent; }
+  .chip{
+    border:1px solid var(--line); background:var(--surface-2); border-radius:999px;
+    padding:6px 12px; font-size:.78rem; font-weight:600; color:var(--ink-soft); cursor:pointer;
+  }
+  .chip[aria-pressed="true"]{ background:var(--accent2-soft); color:var(--accent2); border-color:var(--accent2); }
+  .chiprow{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+
+  /* result blocks */
+  .result-list{ display:flex; flex-direction:column; gap:10px; }
+  .result-row{
+    display:flex; justify-content:space-between; align-items:baseline;
+    padding:12px 14px; border-radius:10px; background:var(--surface-2);
+    border:1px solid transparent;
+  }
+  .result-row.featured{ background:var(--accent2-soft); border-color:var(--accent2); }
+  .result-row .rl-label{ font-size:.84rem; color:var(--ink-soft); }
+  .result-row .rl-value{ font-size:1.15rem; }
+  .result-row.featured .rl-value{ color:var(--accent2); }
+  .result-row .rl-sub{ display:block; font-size:.72rem; color:var(--ink-faint); margin-top:2px; }
+
+  .timeline{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  .timeline li{
+    display:grid; grid-template-columns: 64px 16px 1fr; gap:0 12px;
+    padding-block:8px; position:relative;
+  }
+  .timeline li:not(:last-child)::after{
+    content:""; position:absolute; left:76px; top:26px; bottom:-8px; width:1px; background:var(--line);
+  }
+  .tl-time{ font-family:'IBM Plex Mono',monospace; font-size:.82rem; color:var(--ink-soft); padding-top:2px; }
+  .tl-dot{ width:9px; height:9px; border-radius:50%; background:var(--accent2); margin-top:6px; }
+  .tl-body strong{ font-size:.9rem; display:block; }
+  .tl-body span{ font-size:.8rem; color:var(--ink-soft); }
+
+  /* quiz */
+  .quiz-progress{ height:6px; border-radius:4px; background:var(--surface-2); overflow:hidden; margin-bottom:16px;}
+  .quiz-progress > i{ display:block; height:100%; background:var(--accent2); border-radius:4px; transition:width .25s ease; }
+  .quiz-q{ font-size:1.08rem; margin:0 0 14px; }
+  .quiz-opts{ display:flex; flex-direction:column; gap:8px; }
+  .quiz-opt{
+    text-align:left; border:1px solid var(--line); background:var(--surface-2);
+    padding:12px 14px; border-radius:10px; cursor:pointer; font-size:.9rem; color:var(--ink);
+  }
+  .quiz-opt:hover{ border-color:var(--accent2); }
+  .chrono-badge{
+    display:inline-block; padding:4px 12px; border-radius:999px; background:var(--accent-soft);
+    color:var(--accent); font-weight:700; font-size:.78rem; letter-spacing:.03em; text-transform:uppercase;
+  }
+  .chrono-name{ font-size:1.6rem; margin:8px 0 4px; }
+  .chrono-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:14px;}
+  @media (max-width:520px){ .chrono-grid{ grid-template-columns:1fr; } }
+  .chrono-stat{ background:var(--surface-2); border-radius:10px; padding:10px 12px; }
+  .chrono-stat .k{ font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); }
+  .chrono-stat .v{ font-family:'IBM Plex Mono',monospace; font-size:1rem; margin-top:2px; }
+
+  /* sleep debt bars */
+  .debtchart{ display:flex; align-items:flex-end; gap:8px; height:150px; padding:10px 4px 0; position:relative; }
+  .debtchart .target-line{ position:absolute; left:0; right:0; border-top:1.5px dashed var(--ink-faint); }
+  .debtchart .target-label{ position:absolute; right:4px; font-size:.68rem; color:var(--ink-faint); background:var(--surface); padding:0 4px; }
+  .debtbar{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; height:100%; justify-content:flex-end; }
+  .debtbar .bar{ width:100%; max-width:34px; border-radius:6px 6px 3px 3px; background:var(--accent2); min-height:3px; }
+  .debtbar .bar.short{ background:var(--warn); }
+  .debtbar label{ font-size:.68rem; color:var(--ink-faint); }
+  .debtbar input{ width:100%; max-width:44px; text-align:center; padding:4px; font-size:.78rem; }
+
+  .trend-row{ display:flex; align-items:flex-end; gap:3px; height:60px; overflow-x:auto; padding:4px 2px; }
+  .trend-row .tbar{ flex:0 0 auto; width:7px; border-radius:3px 3px 1px 1px; background:var(--accent2); min-height:2px; }
+  .trend-row .tbar.short{ background:var(--warn); }
+  .trend-empty{ font-size:.82rem; color:var(--ink-faint); }
+
+  .pill{ display:inline-block; padding:4px 12px; border-radius:999px; font-weight:700; font-size:.78rem; letter-spacing:.03em; text-transform:uppercase; }
+  .pill.accent{ background:var(--accent-soft); color:var(--accent); }
+  .pill.accent2{ background:var(--accent2-soft); color:var(--accent2); }
+
+  .lightplan{ display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .lightplan .lp{ flex:1; min-width:150px; background:var(--surface-2); border-radius:10px; padding:10px 12px; }
+  .lightplan .lp .k{ font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); }
+  .lightplan .lp .v{ font-size:.86rem; margin-top:2px; }
+
+  /* nap */
+  .napgrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  @media (max-width:560px){ .napgrid{ grid-template-columns:1fr 1fr; } }
+  .napcard{
+    border:1px solid var(--line); border-radius:12px; padding:12px; text-align:left; cursor:pointer;
+    background:var(--surface-2);
+  }
+  .napcard[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .napcard .dur{ font-family:'IBM Plex Mono',monospace; font-size:1.2rem; }
+  .napcard .why{ font-size:.76rem; color:var(--ink-soft); margin-top:4px; display:block; }
+
+  /* caffeine gauge */
+  .gauge{ height:14px; border-radius:8px; background:var(--surface-2); overflow:hidden; }
+  .gauge > i{ display:block; height:100%; border-radius:8px; transition:width .2s ease; }
+  .gauge-labels{ display:flex; justify-content:space-between; font-size:.72rem; color:var(--ink-faint); margin-top:4px; }
+  .presetrow{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+
+  /* hygiene checklist */
+  .ring-wrap{ display:flex; align-items:center; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+  .ring{ width:76px; height:76px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex:0 0 auto; }
+  .ring span{ font-family:'IBM Plex Mono',monospace; font-size:1rem; background:var(--surface); width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .checklist{ display:flex; flex-direction:column; gap:2px; }
+  .cl-item{ display:flex; gap:12px; align-items:flex-start; padding:11px 4px; border-bottom:1px solid var(--line); }
+  .cl-item:last-child{ border-bottom:none; }
+  .cl-item input{ width:18px; height:18px; margin-top:2px; accent-color: var(--accent2); flex:0 0 auto; }
+  .cl-item .t{ font-size:.9rem; }
+  .cl-item .d{ font-size:.78rem; color:var(--ink-soft); margin-top:2px; }
+  .cl-item.done .t{ color:var(--ink-faint); text-decoration:line-through; }
+
+  .note{ font-size:.78rem; color:var(--ink-faint); margin-top:14px; }
+  footer{ padding-block:24px 40px; border-top:1px solid var(--line); margin-top:20px; }
+  footer p{ font-size:.76rem; color:var(--ink-faint); max-width:62ch; margin:0; }
+</style>
+
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <h1 class="brand-name">Circadian&nbsp;Compass</h1>
+      <p class="brand-tag">Sleep-science tools for finding your bedtime, your chronotype, and your way back to a working schedule.</p>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-card">
+      <div class="hero-head">
+        <div>
+          <div class="hero-now">Right now, in your body clock</div>
+          <h2 class="hero-phase" id="phaseTitle">—</h2>
+          <div class="hero-blurb" id="phaseBlurb">—</div>
+        </div>
+        <div class="hero-clock">
+          <span id="clockNow" class="mono">--:--</span>
+          <span class="zone" id="clockZone">local time</span>
+        </div>
+      </div>
+      <svg class="curve" viewBox="0 0 720 220" id="curveSvg" role="img" aria-label="Typical 24-hour pattern of melatonin and cortisol"></svg>
+      <div class="curve-legend">
+        <span><i class="swatch" style="background:var(--accent2)"></i>Melatonin (sleep drive)</span>
+        <span><i class="swatch" style="background:var(--accent)"></i>Cortisol (alertness)</span>
+        <span>Illustrative typical pattern — shifts earlier or later by chronotype</span>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" aria-label="Sleep tools">
+    <div class="tabs-row" role="tablist">
+      <button class="tab-btn" role="tab" aria-selected="true" data-tab="calc">Bedtime calculator</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="quiz">Chronotype quiz</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="debt">Sleep debt</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="jetlag">Jet lag &amp; shift work</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="nap">Nap timer</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="caffeine">Caffeine cutoff</button>
+      <button class="tab-btn" role="tab" aria-selected="false" data-tab="hygiene">Wind-down checklist</button>
+    </div>
+  </nav>
+
+  <main>
+    <!-- CALCULATOR -->
+    <section class="panel" id="panel-calc">
+      <div class="panel-intro">
+        <h2>Bedtime &amp; wake-time calculator</h2>
+        <p>Sleep runs in cycles of about 90 minutes. Waking up between cycles — not in the middle of one — is what makes a shorter night feel sharper than a longer one. Pick a direction and a target time.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Find my times</h3>
+          <div class="segmented" role="tablist" aria-label="Calculator direction">
+            <button aria-pressed="true" data-dir="wake">I need to wake up at…</button>
+            <button aria-pressed="false" data-dir="bed">I'm going to bed at…</button>
+          </div>
+          <div class="field" style="margin-top:16px;">
+            <label for="calcTime" id="calcTimeLabel">Wake-up time</label>
+            <input type="time" id="calcTime" value="07:00">
+          </div>
+          <div class="field">
+            <label for="fallAsleep">Minutes to fall asleep <span class="hint">— average adult is 10–20</span></label>
+            <input type="number" id="fallAsleep" value="15" min="0" max="60">
+          </div>
+          <button class="btn primary" id="calcRun">Calculate</button>
+        </div>
+        <div class="card">
+          <h3 id="calcResultTitle">Suggested bedtimes</h3>
+          <div class="result-list" id="calcResults"></div>
+          <p class="note">Each row is a full number of 90-minute cycles. The highlighted row (5–6 cycles) is the range most adults land in for 7.5–9 hours of sleep.</p>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3>Tonight's wind-down timeline</h3>
+        <p class="hint" style="margin-top:-8px; margin-bottom:12px; display:block;">Built from the bedtime you calculate above.</p>
+        <ol class="timeline" id="timelineList"></ol>
+      </div>
+    </section>
+
+    <!-- QUIZ -->
+    <section class="panel" id="panel-quiz" hidden>
+      <div class="panel-intro">
+        <h2>What's your chronotype?</h2>
+        <p>Eight short questions on a framework used widely in sleep coaching: four rough chronotypes — Lion, Bear, Wolf and Dolphin — each with a different natural window for sleep, focus and food.</p>
+      </div>
+      <div class="card" id="quizCard">
+        <div class="quiz-progress"><i id="quizBar" style="width:0%"></i></div>
+        <div id="quizBody"></div>
+      </div>
+    </section>
+
+    <!-- SLEEP DEBT -->
+    <section class="panel" id="panel-debt" hidden>
+      <div class="panel-intro">
+        <h2>Sleep debt tracker</h2>
+        <p>Enter how much you actually slept over the last seven nights against how much you need. The gap between the two doesn't vanish on its own — it's paid back with earlier nights or naps.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Last seven nights</h3>
+          <div class="field">
+            <label for="targetHours">Hours you need per night <span class="hint">— most adults: 7–9</span></label>
+            <input type="number" id="targetHours" value="8" min="4" max="12" step="0.5">
+          </div>
+          <div class="debtchart" id="debtChart"></div>
+        </div>
+        <div class="card">
+          <h3>Your balance</h3>
+          <div class="result-list" id="debtResults"></div>
+          <p class="note">A short-term debt of 1–3 hours is common and recoverable with a couple of earlier nights or a daytime nap. Debt that keeps climbing week over week is the pattern worth changing, not any single rough night.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h3>Your longer trend</h3>
+        <p class="hint" style="margin-top:-8px; margin-bottom:10px; display:block;">Every night you edit above is saved on this device, so a real history builds up the more you use this.</p>
+        <div id="debtTrend"></div>
+      </div>
+    </section>
+
+    <!-- JET LAG / SHIFT WORK -->
+    <section class="panel" id="panel-jetlag" hidden>
+      <div class="panel-intro">
+        <h2>Jet lag &amp; shift-work adjuster</h2>
+        <p>Your clock shifts by about an hour a day before it settles. This spreads a bedtime change over enough days to actually stick, and tells you which direction to chase light in.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>The change</h3>
+          <div class="row">
+            <div class="field">
+              <label for="jlCurrent">Current bedtime</label>
+              <input type="time" id="jlCurrent" value="23:00">
+            </div>
+            <div class="field">
+              <label for="jlTarget">Target bedtime</label>
+              <input type="time" id="jlTarget" value="19:00">
+            </div>
+          </div>
+          <div class="field">
+            <label for="jlPace">Shift per day <span class="hint">— 1 hour is the well-tolerated pace</span></label>
+            <input type="number" id="jlPace" value="1" min="0.5" max="2" step="0.5">
+          </div>
+          <div id="jlSummary"></div>
+        </div>
+        <div class="card">
+          <h3>Day-by-day plan</h3>
+          <ol class="timeline" id="jlTimeline"></ol>
+        </div>
+      </div>
+    </section>
+
+    <!-- NAP -->
+    <section class="panel" id="panel-nap" hidden>
+      <div class="panel-intro">
+        <h2>Nap timer</h2>
+        <p>The right nap length depends on what you're napping for. Too long, and you wake up from deep sleep groggy instead of refreshed.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Choose a nap</h3>
+          <div class="napgrid" id="napGrid"></div>
+          <div class="field" style="margin-top:16px;">
+            <label for="napStart">Starting at</label>
+            <input type="time" id="napStart">
+          </div>
+        </div>
+        <div class="card">
+          <h3>Set your alarm for</h3>
+          <div class="result-list" id="napResults"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAFFEINE -->
+    <section class="panel" id="panel-caffeine" hidden>
+      <div class="panel-intro">
+        <h2>Caffeine cutoff calculator</h2>
+        <p>Caffeine has a half-life of roughly five hours — a cup at 2pm still has a quarter of its punch left at 2am. This estimates how much is likely still in your system at bedtime.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Your last cup</h3>
+          <div class="row">
+            <div class="field">
+              <label for="caffTime">Had it at</label>
+              <input type="time" id="caffTime" value="14:00">
+            </div>
+            <div class="field">
+              <label for="caffBed">Bedtime</label>
+              <input type="time" id="caffBed" value="23:00">
+            </div>
+          </div>
+          <div class="field">
+            <label for="caffAmount">Caffeine amount (mg)</label>
+            <input type="number" id="caffAmount" value="95" min="0" max="400" step="5">
+            <div class="presetrow">
+              <button class="chip" data-mg="95">Coffee, 8oz — 95mg</button>
+              <button class="chip" data-mg="64">Espresso shot — 64mg</button>
+              <button class="chip" data-mg="47">Tea — 47mg</button>
+              <button class="chip" data-mg="80">Energy drink — 80mg</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Estimated caffeine left at bedtime</h3>
+          <div class="gauge"><i id="caffGaugeFill"></i></div>
+          <div class="gauge-labels"><span>0 mg</span><span id="caffGaugeMax">95 mg</span></div>
+          <div class="result-list" style="margin-top:16px;" id="caffResults"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HYGIENE -->
+    <section class="panel" id="panel-hygiene" hidden>
+      <div class="panel-intro">
+        <h2>Wind-down checklist</h2>
+        <p>Ten habits with the most consistent evidence behind them. Check off what you actually did today — your progress is saved on this device.</p>
+      </div>
+      <div class="card">
+        <div class="ring-wrap">
+          <div class="ring" id="clRing" style="background:conic-gradient(var(--accent2) 0deg, var(--surface-2) 0deg);">
+            <span id="clRingLabel">0/10</span>
+          </div>
+          <div>
+            <div class="hero-phase" style="font-size:1.05rem;" id="clHeadline">Let's start tonight's routine.</div>
+            <div class="hero-blurb" id="clSub">Check items off as you go.</div>
+          </div>
+        </div>
+        <div class="checklist" id="checklist"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Circadian Compass illustrates general sleep-science patterns — typical circadian timing, average sleep-cycle length, average caffeine half-life — to help with planning. Everyone's rhythm shifts with age, light exposure and genetics, and none of this is medical advice. If sleep trouble is persistent, a clinician is the right next step.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var pad2 = function(n){ return String(n).padStart(2,'0'); };
+  var fmtTime = function(mins){ // minutes since midnight -> "h:mm am/pm"
+    mins = ((mins % 1440) + 1440) % 1440;
+    var h = Math.floor(mins/60), m = Math.round(mins%60);
+    if(m===60){ m=0; h=(h+1)%24; }
+    var ampm = h>=12 ? 'pm':'am';
+    var h12 = h%12; if(h12===0) h12=12;
+    return h12+':'+pad2(m)+' '+ampm;
+  };
+  var timeToMins = function(str){ // "HH:MM" -> minutes
+    if(!str) return null;
+    var parts = str.split(':'); return (+parts[0])*60 + (+parts[1]);
+  };
+  var minsNowLocal = function(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); };
+  var safeGet = function(k,fallback){ try{ var v=localStorage.getItem(k); return v===null?fallback:JSON.parse(v); }catch(e){ return fallback; } };
+  var safeSet = function(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+
+  /* ---------------- live clock + circadian curve ---------------- */
+  var melatonin = [0.85,0.82,0.78,0.72,0.66,0.5,0.32,0.14,0.05,0.02,0.02,0.03,0.04,0.05,0.05,0.05,0.06,0.08,0.14,0.28,0.48,0.66,0.78,0.85,0.85];
+  var cortisol  = [0.16,0.11,0.08,0.08,0.14,0.34,0.62,0.88,1.0,0.86,0.66,0.52,0.46,0.42,0.4,0.42,0.44,0.42,0.36,0.3,0.25,0.21,0.18,0.16,0.16];
+
+  function sampleCurve(arr, hourFloat){
+    var i = Math.floor(hourFloat), mu = hourFloat - i;
+    var y1 = arr[i], y2 = arr[Math.min(i+1, arr.length-1)];
+    var mu2 = (1-Math.cos(mu*Math.PI))/2;
+    return y1*(1-mu2) + y2*mu2;
+  }
+
+  function buildAreaPath(arr, x0,x1,yTop,yBot, steps){
+    var pts=[];
+    for(var s=0;s<=steps;s++){
+      var h = (s/steps)*24;
+      var v = sampleCurve(arr,h);
+      var x = x0 + (x1-x0)*(s/steps);
+      var y = yBot - v*(yBot-yTop);
+      pts.push([x,y]);
+    }
+    var d = 'M'+pts[0][0].toFixed(1)+','+yBot.toFixed(1)+' ';
+    pts.forEach(function(p){ d+= 'L'+p[0].toFixed(1)+','+p[1].toFixed(1)+' '; });
+    d += 'L'+pts[pts.length-1][0].toFixed(1)+','+yBot.toFixed(1)+' Z';
+    return d;
+  }
+  function buildLinePath(arr, x0,x1,yTop,yBot, steps){
+    var pts=[];
+    for(var s=0;s<=steps;s++){
+      var h=(s/steps)*24, v=sampleCurve(arr,h);
+      var x=x0+(x1-x0)*(s/steps), y=yBot-v*(yBot-yTop);
+      pts.push(x.toFixed(1)+','+y.toFixed(1));
+    }
+    return 'M'+pts.join(' L');
+  }
+
+  var svgNS = 'http://www.w3.org/2000/svg';
+  function el(name, attrs){
+    var e = document.createElementNS(svgNS, name);
+    for(var k in attrs){ e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+
+  var curveSvg = document.getElementById('curveSvg');
+  var padL=34, padR=10, padT=14, padB=26, W=720, H=220;
+  var x0=padL, x1=W-padR, yTop=padT, yBot=H-padB;
+
+  function drawCurve(){
+    curveSvg.innerHTML='';
+    // night/day background band
+    var grad = el('linearGradient', {id:'daynight', x1:'0%', y1:'0%', x2:'100%', y2:'0%'});
+    var stops = [
+      [0,'var(--surface-2)'],[22,'var(--surface-2)'],[27,'var(--bg)'],
+      [70,'var(--bg)'],[75,'var(--surface-2)'],[100,'var(--surface-2)']
+    ];
+    stops.forEach(function(s){ grad.appendChild(el('stop',{offset:s[0]+'%','stop-color':s[1]})); });
+    var defs = el('defs',{}); defs.appendChild(grad); curveSvg.appendChild(defs);
+    curveSvg.appendChild(el('rect',{x:x0,y:yTop,width:x1-x0,height:yBot-yTop, fill:'url(#daynight)', rx:6}));
+
+    // hour gridlines + labels
+    [0,3,6,9,12,15,18,21,24].forEach(function(h){
+      var x = x0 + (x1-x0)*(h/24);
+      curveSvg.appendChild(el('line',{x1:x,y1:yTop,x2:x,y2:yBot, stroke:'var(--line)', 'stroke-width':1}));
+      var label = h===0?'12am':h===12?'12pm':h<12?h+'am':(h-12)+'pm';
+      var t = el('text',{x:x, y:H-8, 'text-anchor': h===0?'start':h===24?'end':'middle', 'font-size':11, fill:'var(--ink-faint)', 'font-family':'IBM Plex Mono, monospace'});
+      t.textContent = label; curveSvg.appendChild(t);
+    });
+
+    // melatonin area + cortisol line
+    curveSvg.appendChild(el('path',{d:buildAreaPath(melatonin,x0,x1,yTop,yBot,96), fill:'var(--accent2)', opacity:0.22}));
+    curveSvg.appendChild(el('path',{d:buildLinePath(melatonin,x0,x1,yTop,yBot,96), fill:'none', stroke:'var(--accent2)', 'stroke-width':2.4, 'stroke-linecap':'round'}));
+    curveSvg.appendChild(el('path',{d:buildLinePath(cortisol,x0,x1,yTop,yBot,96), fill:'none', stroke:'var(--accent)', 'stroke-width':2.4, 'stroke-linecap':'round'}));
+
+    // now marker
+    var now = minsNowLocal()/60;
+    var nx = x0 + (x1-x0)*(now/24);
+    curveSvg.appendChild(el('line',{x1:nx,y1:yTop,x2:nx,y2:yBot, stroke:'var(--ink)', 'stroke-width':1.3, 'stroke-dasharray':'3,3', opacity:0.65}));
+    var ny = yBot - sampleCurve(melatonin, now)*(yBot-yTop);
+    var dot = el('circle',{cx:nx, cy:ny, r:5, fill:'var(--ink)'});
+    curveSvg.appendChild(dot);
+  }
+
+  var phases = [
+    [0,1.5,'Deep-sleep window','Core body temperature is near its lowest point and melatonin is near its peak — the hardest hour of the night to wake from.'],
+    [1.5,4.5,'Deepest sleep','Growth hormone release and physical repair peak here; this stretch is why an interrupted 1–4am is felt the most the next day.'],
+    [4.5,6.5,'Pre-dawn lift-off','Cortisol starts climbing and melatonin begins to fall — your body is quietly getting ready to wake before an alarm would say so.'],
+    [6.5,9,'Cortisol peak','Alertness hormones are at their daily high. Morning light here is one of the strongest signals for anchoring the whole 24-hour clock.'],
+    [9,12,'Late-morning focus','A common peak for working memory and alertness — a good window for demanding, focused work.'],
+    [12,14.5,'Post-lunch dip','A natural, small drop in alertness shows up here for most people, independent of what or whether you ate.'],
+    [14.5,17.5,'Second wind','Alertness and coordination climb back up — often the best window of the day for physical performance.'],
+    [17.5,19.5,'Peak body temperature','Core temperature reaches its daily high in the early evening, just before the wind-down toward sleep begins.'],
+    [19.5,22,'Melatonin rising','Light-sensitive melatonin release typically begins here — dimming screens and lights now works with your body instead of against it.'],
+    [22,24,'Approaching sleep window','Sleep drive is climbing toward its overnight peak for most adult schedules.']
+  ];
+  function phaseFor(hour){
+    for(var i=0;i<phases.length;i++){ if(hour>=phases[i][0] && hour<phases[i][1]) return phases[i]; }
+    return phases[0];
+  }
+
+  function tickClock(){
+    var d = new Date();
+    document.getElementById('clockNow').textContent = pad2(d.getHours())+':'+pad2(d.getMinutes());
+    var hour = d.getHours()+d.getMinutes()/60;
+    var ph = phaseFor(hour);
+    document.getElementById('phaseTitle').textContent = ph[2];
+    document.getElementById('phaseBlurb').textContent = ph[3];
+    drawCurve();
+  }
+  tickClock();
+  setInterval(tickClock, 60000);
+
+  /* ---------------- tabs ---------------- */
+  var tabBtns = Array.prototype.slice.call(document.querySelectorAll('.tab-btn'));
+  tabBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      tabBtns.forEach(function(b){ b.setAttribute('aria-selected', b===btn ? 'true':'false'); });
+      document.querySelectorAll('.panel').forEach(function(p){ p.hidden = true; });
+      document.getElementById('panel-'+btn.dataset.tab).hidden = false;
+    });
+  });
+
+  /* ---------------- bedtime / wake calculator ---------------- */
+  var calcDir = 'wake';
+  document.querySelectorAll('[data-dir]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('[data-dir]').forEach(function(b){ b.setAttribute('aria-pressed', b===btn?'true':'false'); });
+      calcDir = btn.dataset.dir;
+      var label = document.getElementById('calcTimeLabel');
+      var titleEl = document.getElementById('calcResultTitle');
+      if(calcDir==='wake'){ label.textContent='Wake-up time'; titleEl.textContent='Suggested bedtimes'; }
+      else { label.textContent='Bedtime'; titleEl.textContent='Suggested wake-up times'; }
+      runCalc();
+    });
+  });
+  document.getElementById('calcTime').addEventListener('change', runCalc);
+  document.getElementById('fallAsleep').addEventListener('input', runCalc);
+  document.getElementById('calcRun').addEventListener('click', runCalc);
+
+  function runCalc(){
+    var t = timeToMins(document.getElementById('calcTime').value);
+    var fall = +document.getElementById('fallAsleep').value || 0;
+    if(t===null) return;
+    var results = document.getElementById('calcResults');
+    results.innerHTML='';
+    var cycles = [6,5,4,3];
+    cycles.forEach(function(n){
+      var hrs = (n*90/60);
+      var target;
+      if(calcDir==='wake'){ target = t - fall - n*90; }
+      else { target = t + fall + n*90; }
+      var row = document.createElement('div');
+      row.className = 'result-row' + ((n===5||n===6) ? ' featured':'');
+      var label = calcDir==='wake' ? 'Go to bed by' : 'Wake up around';
+      row.innerHTML = '<div><div class="rl-label">'+label+' — '+n+' cycles<span class="rl-sub">'+hrs+' hours of sleep</span></div></div><div class="rl-value mono">'+fmtTime(target)+'</div>';
+      results.appendChild(row);
+    });
+    buildTimeline(calcDir==='wake' ? (t - fall - 5.5*90) : t);
+  }
+
+  function buildTimeline(bedtimeMins){
+    if(bedtimeMins===null || isNaN(bedtimeMins)) return;
+    var items = [
+      [-180,'Last real meal','Eating close to bedtime can work against the drop in core temperature that helps you fall asleep.'],
+      [-120,'Dim the lights','Lower the brightness around you — this is roughly when melatonin release naturally starts ramping up.'],
+      [-60,'Screens down','Move off bright, close-up screens; if you need one, warmer/dimmer settings help less than distance and time.'],
+      [-30,'Wind-down ritual','Reading, stretching, or a warm shower — anything low-stimulation and repeatable works.'],
+      [0,'Lights out','Bedtime.'],
+      [90*5,'Earliest natural wake','5 full cycles (7.5h) — the early edge of a good night.'],
+      [90*6,'Well-rested wake','6 full cycles (9h) — the late edge for most adult schedules.']
+    ];
+    var list = document.getElementById('timelineList');
+    list.innerHTML='';
+    items.forEach(function(it){
+      var mins = bedtimeMins + it[0];
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="tl-time">'+fmtTime(mins)+'</span><span class="tl-dot"></span><span class="tl-body"><strong>'+it[1]+'</strong><span>'+it[2]+'</span></span>';
+      list.appendChild(li);
+    });
+  }
+  runCalc();
+
+  /* ---------------- chronotype quiz ---------------- */
+  var quizQuestions = [
+    ["Left with no alarm and nowhere to be, you'd naturally wake up…",
+      ["Right around sunrise, wide awake almost immediately.","Lion"],
+      ["A bit after sunrise, and it takes a coffee to feel human.","Bear"],
+      ["Well into the morning — your body clearly wanted more.","Wolf"],
+      ["Whenever it wants — your sleep is light and easily broken anyway.","Dolphin"]],
+    ["Your best, sharpest thinking of the day usually happens…",
+      ["Early morning, before most people are at their desks.","Lion"],
+      ["Mid-morning to early afternoon.","Bear"],
+      ["Evening, once everyone else has slowed down.","Wolf"],
+      ["It's inconsistent — good focus in short, unpredictable bursts.","Dolphin"]],
+    ["How do you usually feel about mornings?",
+      ["Genuinely energized — mornings are your favorite part of the day.","Lion"],
+      ["Fine once you're up, but the first 20 minutes are rough.","Bear"],
+      ["Rough. Full stop. You'd cancel a morning if you could.","Wolf"],
+      ["Groggy and a little foggy no matter how much you slept.","Dolphin"]],
+    ["When it's finally time to wind down at night, you're usually…",
+      ["Ready — you're often the first one heading to bed.","Lion"],
+      ["Getting a little tired, on a fairly predictable schedule.","Bear"],
+      ["Just hitting your stride — this is when you feel most alive.","Wolf"],
+      ["Wired, overthinking, or both.","Dolphin"]],
+    ["How easily do you fall asleep on a normal night?",
+      ["Very easily, almost as soon as you're horizontal.","Lion"],
+      ["Within 15–20 minutes, without much fuss.","Bear"],
+      ["Slowly — your mind doesn't want to power down yet.","Wolf"],
+      ["With difficulty — you're a genuinely light, easily-woken sleeper.","Dolphin"]],
+    ["A big exam or presentation is at 8am. Your instinct is to prepare…",
+      ["The night before, then sleep early and go over it once more at dawn.","Lion"],
+      ["The night before, get a normal night's sleep, review over breakfast.","Bear"],
+      ["Late the night before — that's when the material actually clicks.","Wolf"],
+      ["Early, then again at 3am when you happen to be awake anyway.","Dolphin"]],
+    ["Which best describes your relationship with naps?",
+      ["Rare — you don't feel like you need them.","Lion"],
+      ["A short one mid-afternoon can be great.","Bear"],
+      ["Late naps, if any — mornings are already lost to grogginess.","Wolf"],
+      ["You want one constantly but they rarely actually help.","Dolphin"]],
+    ["If your schedule were entirely up to you, you'd probably choose to…",
+      ["Sleep around 9–10pm, wake around 5–6am.","Lion"],
+      ["Sleep around 11pm, wake around 7am.","Bear"],
+      ["Sleep around 1–2am, wake around 9–10am.","Wolf"],
+      ["Keep an irregular schedule — nothing fixed ever quite fits.","Dolphin"]]
+  ];
+  var chronoInfo = {
+    Lion: {tag:'About 15% of people', body:'Early to rise and early to fade. You do your best work before most people have had breakfast, and you pay for late nights more than most.', wake:'5:00 – 6:30am', bed:'9:00 – 10:00pm', focus:'7am – 12pm', tip:'Protect your mornings for the hardest task of the day — that edge fades by early afternoon.', seek:'On waking, 5–7am', avoid:'Bright light after 8pm'},
+    Bear: {tag:'About 50% of people — the most common type', body:"Your rhythm tracks the sun fairly closely. Solid, steady energy through the day with the classic post-lunch dip, and mornings that need a little runway.", wake:'6:30 – 7:30am', bed:'10:30 – 11:30pm', focus:'10am – 2pm', tip:'Keep a consistent wake time — Bears lose their footing fastest of any type when the schedule wobbles.', seek:'Within an hour of waking, ~7–9am', avoid:'Screens and bright light after 9pm'},
+    Wolf: {tag:'About 15–20% of people', body:"Your energy builds as the day goes on and peaks well after dark. Mornings are genuinely difficult for you, not just a matter of willpower.", wake:'7:30 – 9:00am', bed:'12:00 – 1:00am', focus:'5pm – 10pm', tip:'Guard your evening focus window, and use bright light right after waking to pull your clock a little earlier.', seek:'As early as tolerable, before 9am', avoid:'Bright light or screens after 11pm'},
+    Dolphin: {tag:'About 10% of people', body:'A light, easily-interrupted sleeper, often anxious about sleep itself, which tends to make it worse. No single window of the day feels reliably sharp.', wake:'6:30 – 7:30am (variable)', bed:'11:30pm – 12:30am', focus:'Short, unpredictable bursts', tip:'A strict wind-down routine matters more for you than for any other type — your system needs the extra runway.', seek:'Consistently, 7–9am even after a bad night', avoid:'Any screens within 90 minutes of bed'}
+  };
+  var quizState = { idx:0, scores:{Lion:0,Bear:0,Wolf:0,Dolphin:0}, done:false };
+  var savedQuiz = safeGet('cc_quiz_result', null);
+
+  function renderQuiz(){
+    var body = document.getElementById('quizBody');
+    document.getElementById('quizBar').style.width = (quizState.idx/quizQuestions.length*100)+'%';
+    if(quizState.idx >= quizQuestions.length){
+      finishQuiz(); return;
+    }
+    var q = quizQuestions[quizState.idx];
+    var html = '<p class="quiz-q">'+ (quizState.idx+1) +'. '+q[0]+'</p><div class="quiz-opts">';
+    for(var i=1;i<q.length;i++){
+      html += '<button class="quiz-opt" data-type="'+q[i][1]+'">'+q[i][0]+'</button>';
+    }
+    html += '</div>';
+    body.innerHTML = html;
+    body.querySelectorAll('.quiz-opt').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        quizState.scores[btn.dataset.type]++;
+        quizState.idx++;
+        renderQuiz();
+      });
+    });
+  }
+  function finishQuiz(){
+    document.getElementById('quizBar').style.width='100%';
+    var order = ['Lion','Bear','Wolf','Dolphin'];
+    var best = order[0];
+    order.forEach(function(k){ if(quizState.scores[k] > quizState.scores[best]) best = k; });
+    safeSet('cc_quiz_result', best);
+    showChronoResult(best, quizState.scores);
+  }
+  function showChronoResult(type, scores){
+    var info = chronoInfo[type];
+    var body = document.getElementById('quizBody');
+    var breakdown = ['Lion','Bear','Wolf','Dolphin'].map(function(k){
+      return '<div class="chrono-stat"><div class="k">'+k+'</div><div class="v">'+(scores ? scores[k] : '—')+(scores? '/8':'')+'</div></div>';
+    }).join('');
+    body.innerHTML =
+      '<span class="chrono-badge">'+info.tag+'</span>'+
+      '<h3 class="chrono-name">'+type+'</h3>'+
+      '<p class="hero-blurb" style="max-width:60ch;">'+info.body+'</p>'+
+      '<div class="chrono-grid">'+
+        '<div class="chrono-stat"><div class="k">Natural wake</div><div class="v">'+info.wake+'</div></div>'+
+        '<div class="chrono-stat"><div class="k">Natural bedtime</div><div class="v">'+info.bed+'</div></div>'+
+        '<div class="chrono-stat"><div class="k">Peak focus</div><div class="v">'+info.focus+'</div></div>'+
+        '<div class="chrono-stat"><div class="k">Key tip</div><div class="v" style="font-size:.82rem; font-family:Manrope, sans-serif;">'+info.tip+'</div></div>'+
+      '</div>'+
+      '<p class="note" style="margin-top:16px;">Light plan for your type</p>'+
+      '<div class="lightplan">'+
+        '<div class="lp"><div class="k">Seek bright light</div><div class="v">'+info.seek+'</div></div>'+
+        '<div class="lp"><div class="k">Avoid bright light</div><div class="v">'+info.avoid+'</div></div>'+
+      '</div>'+
+      (scores ? '<p class="note">Your answers, by type</p><div class="chrono-grid">'+breakdown+'</div>' : '')+
+      '<button class="btn ghost" id="quizRetake" style="margin-top:16px;">Retake quiz</button>';
+    document.getElementById('quizRetake').addEventListener('click', function(){
+      quizState = { idx:0, scores:{Lion:0,Bear:0,Wolf:0,Dolphin:0}, done:false };
+      renderQuiz();
+    });
+  }
+  if(savedQuiz && chronoInfo[savedQuiz]){ showChronoResult(savedQuiz, null); }
+  else { renderQuiz(); }
+
+  /* ---------------- sleep debt ---------------- */
+  function isoDate(d){ return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  var dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var last7Dates = (function(){
+    var out=[]; var today = new Date();
+    for(var i=7;i>=1;i--){ var d=new Date(today); d.setDate(today.getDate()-i); out.push(d); }
+    return out;
+  })();
+  var exampleDefaults = [7,6.5,7,8,6,7.5,7.5];
+  var debtLog = safeGet('cc_debt_log', {});
+
+  function hoursFor(d, i){
+    var iso = isoDate(d);
+    return debtLog[iso] !== undefined ? debtLog[iso] : exampleDefaults[i];
+  }
+  function renderDebtChart(){
+    var wrap = document.getElementById('debtChart');
+    var target = +document.getElementById('targetHours').value || 8;
+    var maxScale = Math.max(target, 9) + 0.5;
+    wrap.innerHTML='';
+    var lineTop = 10 + (1 - target/maxScale) * 130;
+    var tl = document.createElement('div'); tl.className='target-line'; tl.style.top = lineTop+'px';
+    wrap.appendChild(tl);
+    var tlabel = document.createElement('div'); tlabel.className='target-label'; tlabel.style.top=(lineTop-9)+'px'; tlabel.textContent='target '+target+'h';
+    wrap.appendChild(tlabel);
+    last7Dates.forEach(function(d, i){
+      var iso = isoDate(d);
+      var hrs = hoursFor(d, i);
+      var col = document.createElement('div'); col.className='debtbar';
+      var barH = Math.max(3, (hrs/maxScale)*130);
+      col.innerHTML = '<input type="number" step="0.5" min="0" max="14" value="'+hrs+'" data-iso="'+iso+'" aria-label="Hours slept '+dayNames[d.getDay()]+'">'+
+        '<div class="bar'+(hrs<target?' short':'')+'" style="height:'+barH+'px"></div><label>'+dayNames[d.getDay()]+'</label>';
+      wrap.appendChild(col);
+    });
+    wrap.querySelectorAll('input').forEach(function(inp){
+      inp.addEventListener('input', function(){
+        debtLog[inp.dataset.iso] = +inp.value || 0;
+        safeSet('cc_debt_log', debtLog);
+        renderDebtChart(); computeDebt(); renderDebtTrend();
+      });
+    });
+  }
+  function computeDebt(){
+    var target = +document.getElementById('targetHours').value || 8;
+    var total = last7Dates.reduce(function(sum, d, i){ return sum + hoursFor(d, i); }, 0);
+    var need = target*7;
+    var diff = need - total;
+    var avg = total/7;
+    var results = document.getElementById('debtResults');
+    results.innerHTML =
+      '<div class="result-row"><div class="rl-label">Total slept, last 7 nights</div><div class="rl-value mono">'+total.toFixed(1)+'h</div></div>'+
+      '<div class="result-row"><div class="rl-label">Average per night</div><div class="rl-value mono">'+avg.toFixed(1)+'h</div></div>'+
+      '<div class="result-row featured"><div><div class="rl-label">'+(diff>0?'Sleep debt':'Surplus')+'<span class="rl-sub">vs. '+need.toFixed(0)+'h needed over 7 nights</span></div></div><div class="rl-value mono" style="color:'+(diff>0?'var(--warn)':'var(--good)')+'">'+(diff>0?'−':'+')+Math.abs(diff).toFixed(1)+'h</div></div>';
+  }
+  function renderDebtTrend(){
+    var wrap = document.getElementById('debtTrend');
+    var target = +document.getElementById('targetHours').value || 8;
+    var dates = Object.keys(debtLog).sort();
+    if(dates.length < 8){
+      wrap.innerHTML = '<p class="trend-empty">Log a few nights above and a longer trend will build up here — there is not yet enough saved history beyond the 7-day view.</p>';
+      return;
+    }
+    var recent = dates.slice(-30);
+    var maxScale = Math.max(target, 9) + 0.5;
+    var row = document.createElement('div'); row.className='trend-row';
+    recent.forEach(function(iso){
+      var hrs = debtLog[iso];
+      var bar = document.createElement('div');
+      bar.className = 'tbar'+(hrs<target?' short':'');
+      bar.style.height = Math.max(2,(hrs/maxScale)*56)+'px';
+      bar.title = iso+': '+hrs+'h';
+      row.appendChild(bar);
+    });
+    wrap.innerHTML=''; wrap.appendChild(row);
+  }
+  document.getElementById('targetHours').addEventListener('input', function(){ renderDebtChart(); computeDebt(); renderDebtTrend(); });
+  renderDebtChart(); computeDebt(); renderDebtTrend();
+
+  /* ---------------- jet lag / shift-work adjuster ---------------- */
+  function renderJetlag(){
+    var cur = timeToMins(document.getElementById('jlCurrent').value);
+    var tgt = timeToMins(document.getElementById('jlTarget').value);
+    var pace = +document.getElementById('jlPace').value || 1;
+    if(cur===null || tgt===null) return;
+    var diff = tgt - cur;
+    if(diff > 720) diff -= 1440;
+    if(diff < -720) diff += 1440;
+    var direction = diff < 0 ? 'earlier' : diff > 0 ? 'later' : 'none';
+    var totalHours = Math.abs(diff)/60;
+    var days = direction==='none' ? 0 : Math.ceil(totalHours/pace);
+
+    var summary = document.getElementById('jlSummary');
+    if(direction==='none'){
+      summary.innerHTML = '<p class="note" style="margin-top:14px;">Current and target bedtime already match.</p>';
+    } else {
+      var pillClass = direction==='earlier' ? 'accent2' : 'accent';
+      summary.innerHTML =
+        '<div style="margin-top:14px;"><span class="pill '+pillClass+'">Shifting '+direction+'</span></div>'+
+        '<div class="result-list" style="margin-top:12px;">'+
+          '<div class="result-row"><div class="rl-label">Total shift</div><div class="rl-value mono">'+totalHours.toFixed(1)+'h</div></div>'+
+          '<div class="result-row featured"><div class="rl-label">Days to get there<span class="rl-sub">at '+pace+'h per day</span></div><div class="rl-value mono">'+days+'</div></div>'+
+        '</div>';
+    }
+
+    var list = document.getElementById('jlTimeline');
+    list.innerHTML = '';
+    if(direction==='none'){ return; }
+    var stepMins = pace*60*(direction==='earlier'?-1:1);
+    var lightNote = direction==='earlier'
+      ? 'Get bright light soon after waking; dim lights and screens in the evening.'
+      : 'Get bright light in the evening; keep mornings dim if you can.';
+    for(var i=1; i<=days; i++){
+      var isLast = i===days;
+      var thisBed = isLast ? tgt : cur + stepMins*i;
+      if(direction==='earlier' && thisBed < tgt) thisBed = tgt;
+      if(direction==='later' && thisBed > tgt) thisBed = tgt;
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="tl-time">Day '+i+'</span><span class="tl-dot"></span>'+
+        '<span class="tl-body"><strong>Bedtime '+fmtTime(thisBed)+'</strong><span>'+(isLast ? 'Target reached.' : lightNote)+'</span></span>';
+      list.appendChild(li);
+    }
+  }
+  ['jlCurrent','jlTarget','jlPace'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', renderJetlag);
+  });
+  renderJetlag();
+
+  /* ---------------- nap timer ---------------- */
+  var napOptions = [
+    [20,'Power nap','Short enough to skip deep sleep — you wake up alert, not groggy.'],
+    [26,'NASA nap','Studied with pilots and astronauts as a boost to alertness with minimal grogginess.'],
+    [90,'Full cycle','One complete 90-minute cycle, waking at a natural light-sleep point.']
+  ];
+  var napChosen = 20;
+  function renderNapGrid(){
+    var grid = document.getElementById('napGrid');
+    grid.innerHTML='';
+    napOptions.forEach(function(opt){
+      var card = document.createElement('button');
+      card.className='napcard'; card.setAttribute('aria-pressed', opt[0]===napChosen ? 'true':'false');
+      card.innerHTML = '<div class="dur">'+opt[0]+' min</div><strong style="font-size:.84rem;">'+opt[1]+'</strong><span class="why">'+opt[2]+'</span>';
+      card.addEventListener('click', function(){ napChosen = opt[0]; renderNapGrid(); computeNap(); });
+      grid.appendChild(card);
+    });
+  }
+  function computeNap(){
+    var startEl = document.getElementById('napStart');
+    if(!startEl.value){ var n=new Date(); startEl.value = pad2(n.getHours())+':'+pad2(n.getMinutes()); }
+    var start = timeToMins(startEl.value);
+    var end = start + napChosen;
+    var results = document.getElementById('napResults');
+    results.innerHTML =
+      '<div class="result-row featured"><div class="rl-label">Wake up at<span class="rl-sub">'+napChosen+' minutes from start</span></div><div class="rl-value mono">'+fmtTime(end)+'</div></div>'+
+      '<div class="result-row"><div class="rl-label">Best before</div><div class="rl-value mono">3–4pm<span class="rl-sub" style="display:block;">later naps can bleed into nighttime sleep drive</span></div></div>';
+  }
+  document.getElementById('napStart').addEventListener('input', computeNap);
+  renderNapGrid(); computeNap();
+
+  /* ---------------- caffeine cutoff ---------------- */
+  function computeCaffeine(){
+    var t = timeToMins(document.getElementById('caffTime').value);
+    var bed = timeToMins(document.getElementById('caffBed').value);
+    var amount = +document.getElementById('caffAmount').value || 0;
+    if(t===null || bed===null) return;
+    var diff = bed - t; if(diff < 0) diff += 1440;
+    var hours = diff/60;
+    var residual = amount * Math.pow(0.5, hours/5);
+    var pct = amount>0 ? Math.min(100, residual/amount*100) : 0;
+    var fill = document.getElementById('caffGaugeFill');
+    fill.style.width = pct+'%';
+    var color = residual>50 ? 'var(--warn)' : (residual>20 ? 'var(--accent)' : 'var(--good)');
+    fill.style.background = color;
+    document.getElementById('caffGaugeMax').textContent = Math.round(amount)+' mg';
+
+    var cutoffHours = amount>50 ? 5*Math.log2(amount/50) : 0;
+    var cutoffMins = bed - cutoffHours*60;
+
+    var verdict = residual>50 ? "That's likely enough to interfere with falling asleep." :
+                  residual>20 ? "A small amount may still be active — probably minor for most people." :
+                  "Should be largely cleared by bedtime.";
+
+    document.getElementById('caffResults').innerHTML =
+      '<div class="result-row featured"><div class="rl-label">Estimated caffeine left at bedtime</div><div class="rl-value mono" style="color:'+color+'">'+Math.round(residual)+' mg</div></div>'+
+      '<div class="result-row"><div class="rl-label">Verdict</div><div class="rl-value" style="font-size:.86rem;">'+verdict+'</div></div>'+
+      '<div class="result-row"><div class="rl-label">Suggested last-call time<span class="rl-sub">to land under ~50mg by bedtime</span></div><div class="rl-value mono">'+(amount>50? fmtTime(cutoffMins) : 'anytime')+'</div></div>';
+  }
+  document.querySelectorAll('[data-mg]').forEach(function(chip){
+    chip.addEventListener('click', function(){
+      document.getElementById('caffAmount').value = chip.dataset.mg;
+      computeCaffeine();
+    });
+  });
+  ['caffTime','caffBed','caffAmount'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', computeCaffeine);
+  });
+  computeCaffeine();
+
+  /* ---------------- hygiene checklist ---------------- */
+  var hygieneItems = [
+    ['light','Get outside light within an hour of waking','Morning light is the strongest single cue for anchoring your whole 24-hour clock.'],
+    ['wake','Woke up within the same hour as usual','A steady wake time matters more than a steady bedtime for keeping rhythm stable.'],
+    ['caffeine','Stopped caffeine at least 8 hours before bed','Gives the roughly 5-hour half-life enough runway to mostly clear.'],
+    ['nap','Kept any nap under 30 minutes and before 3pm',"Longer or later naps borrow against tonight's sleep drive."],
+    ['exercise','Moved your body earlier in the day','Exercise very close to bedtime can delay the temperature drop sleep depends on.'],
+    ['meal','Finished your last big meal 2–3 hours before bed','A full stomach fights the same drop in core temperature caffeine and exercise do.'],
+    ['alcohol','Kept alcohol light, or skipped it','Alcohol can make you drowsy early, then fragments sleep in the second half of the night.'],
+    ['screens','Dimmed screens and lights an hour before bed','Works with your natural melatonin rise instead of suppressing it.'],
+    ['temp','Room is cool — roughly 65–68°F / 18–20°C',"Matches the body's own temperature drop during sleep onset."],
+    ['worry',"Left tomorrow's worries on paper, not in bed",'A two-minute written list is a well-tested way to quiet a racing mind at lights-out.']
+  ];
+  var clState = safeGet('cc_checklist', {});
+  function renderChecklist(){
+    var wrap = document.getElementById('checklist');
+    wrap.innerHTML='';
+    hygieneItems.forEach(function(item){
+      var id='cl_'+item[0];
+      var checked = !!clState[item[0]];
+      var row = document.createElement('div');
+      row.className='cl-item'+(checked?' done':'');
+      row.innerHTML = '<input type="checkbox" id="'+id+'" '+(checked?'checked':'')+'>'+
+        '<label for="'+id+'" style="flex:1; cursor:pointer;"><span class="t">'+item[1]+'</span><span class="d">'+item[2]+'</span></label>';
+      row.querySelector('input').addEventListener('change', function(e){
+        clState[item[0]] = e.target.checked;
+        safeSet('cc_checklist', clState);
+        row.classList.toggle('done', e.target.checked);
+        updateRing();
+      });
+      wrap.appendChild(row);
+    });
+    updateRing();
+  }
+  function updateRing(){
+    var total = hygieneItems.length;
+    var done = hygieneItems.filter(function(i){ return clState[i[0]]; }).length;
+    var deg = (done/total)*360;
+    document.getElementById('clRing').style.background = 'conic-gradient(var(--accent2) '+deg+'deg, var(--surface-2) '+deg+'deg)';
+    document.getElementById('clRingLabel').textContent = done+'/'+total;
+    var headline = document.getElementById('clHeadline');
+    var sub = document.getElementById('clSub');
+    if(done===0){ headline.textContent="Let's start tonight's routine."; sub.textContent='Check items off as you go.'; }
+    else if(done===total){ headline.textContent='Full routine, tonight.'; sub.textContent='That\'s about as good a setup for sleep as it gets.'; }
+    else { headline.textContent=done+' of '+total+' done'; sub.textContent='Keep going, or come back before bed.'; }
+  }
+  renderChecklist();
+
+})();
+</script>
+</body>
+</html>
